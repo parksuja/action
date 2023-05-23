@@ -38,7 +38,7 @@ jobs:
           client-payload: '{"app_name": "${{ steps.build.outputs.appName }}", "app_version": "${{ steps.build.outputs.imageTag }}", "deploy_env": "dev"}'
 
       - name: helm chart stp version tagging
-        if: ${{ github.ref_name == 'develop' }}
+        if: ${{ startsWith(env.BRANCH, 'release/') }}
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.ACTIONS_SECRET }}
