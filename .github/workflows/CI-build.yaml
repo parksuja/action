@@ -1,0 +1,65 @@
+name: Build
+
+on:
+  push:
+    branches: [ develop, main ]
+    paths-ignore:
+      - '.github/**'
+      - '.gitignore'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ vars.RUNNER }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Set dev env
+        if: ${{ github.ref_name == 'develop' }}
+        run: echo "SLACK_WEB_HOOK=${{ secrets.SLACK_DEV_WEBHOOK }}" >> $GITHUB_ENV
+
+      - name: Set prd env
+        if: ${{ github.ref_name == 'main' }}
+        run: echo "SLACK_WEB_HOOK=${{ secrets.SLACK_PROD_WEBHOOK }}" >> $GITHUB_ENV
+
+      - name: Build and ECR Upload
+        id: build
+        uses: ./.github/actions/common-build
+
+      - name: helm chart dev version tagging
+        if: ${{ github.ref_name == 'develop' }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token:  ${{ secrets.ACTIONS_SECRET }}
+          repository: parksuja/helm-charts
+          event-type: app_image_update
+          client-payload: '{"app_name": "${{ steps.build.outputs.appName }}", "app_version": "${{ steps.build.outputs.imageTag }}", "deploy_env": "dev"}'
+
+      - name: helm chart stp version tagging
+        if: ${{ github.ref_name == 'develop' }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.ACTIONS_SECRET }}
+          repository: parksuja/helm-charts
+          event-type: app_image_update
+          client-payload: '{"app_name": "${{ steps.build.outputs.appName }}", "app_version": "${{ steps.build.outputs.imageTag }}", "deploy_env": "stp"}'
+
+      - name: helm chart prd version tagging
+        if: ${{ github.ref_name == 'main' }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.ACTIONS_SECRET }}
+          repository: parksuja/helm-charts
+          event-type: app_image_update
+          client-payload: '{"app_name": "${{ steps.build.outputs.appName }}", "app_version": "${{ steps.build.outputs.imageTag }}", "deploy_env": "prd"}'
+
+      - name: slack message
+        if: always()
+        uses: 
+        with:
+          type: build
+          token: ${{ secrets.ACTIONS_SECRET }}
+          slack_webhook: ${{ env.SLACK_WEB_HOOK }}
+          slack_color: ${{ job.status }}
