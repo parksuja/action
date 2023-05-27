@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       # 이전 단계에서 저장한 Secrets 값을 가져옵니다.
       - name: Set up environment variables
         env:
