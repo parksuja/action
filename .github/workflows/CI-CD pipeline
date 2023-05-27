@@ -20,7 +20,6 @@ jobs:
         run: echo "SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}" >> $GITHUB_ENV
 
       # 빌드 단계, 테스트 단계 등 필요한 작업을 추가합니다.
-
       # 슬랙 메시지 보내기 단계
       - name: Send Slack notification
         run: |
