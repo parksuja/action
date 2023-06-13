@@ -25,5 +25,5 @@ jobs:
 
       - name: Run Docker container
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dk9340/hello
+          docker run --rm dk9340/hello
         
