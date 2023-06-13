@@ -25,4 +25,5 @@ jobs:
 
       - name: Run Docker container
         run: |
+          docker version \ 
           docker run --rm -v /var/run/dockershim.sock:/var/run/dockershim.sock dk9340/sujin
